@@ -4,23 +4,26 @@ import (
 	"fmt"
 )
 
-/*type Dispatcher struct {
+type Dispatcher struct {
 	jobs   chan job
 	events map[Name]Listener
-}*/
+}
 
-/*func NewDispatcher() *Dispatcher {
+func NewDispatcher() *Dispatcher {
 	d := &Dispatcher{
 		jobs:   make(chan job, 1),
 		events: make(map[Name]Listener),
 	}
-
-	go d.consume()
+	go func() {
+		fmt.Println("[DISPATCHER] Starting consume goroutine")
+		d.consume()
+	}()
+	// go d.consume()
 	fmt.Println("Dispatcher initialized")
 	return d
-}*/
+}
 
-type Dispatcher struct {
+/*type Dispatcher struct {
 	jobs        chan job
 	events      map[Name]Listener
 	workerCount int
@@ -39,7 +42,7 @@ func NewDispatcher(workerCount int, jobQueueSize int) *Dispatcher {
 
 	fmt.Println("Dispatcher initialized with", workerCount, "workers")
 	return d
-}
+}*/
 
 func (d *Dispatcher) Register(listener Listener, names ...Name) error {
 	for _, name := range names {
@@ -72,13 +75,13 @@ func (d *Dispatcher) Dispatch(name Name, event interface{}) error {
 	return nil
 }
 
-func (d *Dispatcher) worker(id int) {
+/*func (d *Dispatcher) worker(id int) {
 	fmt.Printf("[WORKER %d] started\n", id)
 	for job := range d.jobs {
 		fmt.Printf("[WORKER %d] Processing event: %s\n", id, job.eventName)
 		d.events[job.eventName].Listen(job.eventType)
 	}
-}
+}*/
 
 /*func (d *Dispatcher) consume() {
 	fmt.Println("[DISPATCHER] consume loop started")
@@ -87,7 +90,7 @@ func (d *Dispatcher) worker(id int) {
 		d.events[job.eventName].Listen(job.eventType)
 	}
 	fmt.Println("consume End")
-}*/
+} */
 
 /*func (d *Dispatcher) consume() {
 	fmt.Println("[DISPATCHER] consume loop started")
@@ -109,3 +112,21 @@ func (d *Dispatcher) worker(id int) {
 	}
 }
 */
+
+func (d *Dispatcher) consume() {
+	fmt.Println("[DISPATCHER] consume loop started")
+	for job := range d.jobs {
+		fmt.Printf("Consuming event: %s\n", job.eventName)
+
+		// Process each job in its own goroutine
+		go func(j job) {
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Printf("Recovered in job handler: %v\n", r)
+				}
+			}()
+			d.events[j.eventName].Listen(j.eventType)
+		}(job)
+	}
+	fmt.Println("consume End")
+}
