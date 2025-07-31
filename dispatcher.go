@@ -115,8 +115,8 @@ func (d *Dispatcher) Dispatch(name Name, event interface{}) error {
 
 func (d *Dispatcher) consume() {
 	fmt.Println("[DISPATCHER] consume loop started")
-	for job := range d.jobs {
-		fmt.Printf("Consuming event: %s\n", job.eventName)
+	for eventTask := range d.jobs {
+		fmt.Printf("Consuming event: %s\n", eventTask.eventName)
 
 		// Process each job in its own goroutine
 		go func(j job) {
@@ -126,7 +126,7 @@ func (d *Dispatcher) consume() {
 				}
 			}()
 			d.events[j.eventName].Listen(j.eventType)
-		}(job)
+		}(eventTask)
 	}
 	fmt.Println("consume End")
 }
