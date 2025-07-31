@@ -2,7 +2,6 @@ package event
 
 import (
 	"fmt"
-	"log"
 )
 
 type Dispatcher struct {
@@ -17,18 +16,18 @@ func NewDispatcher() *Dispatcher {
 	}
 
 	go d.consume()
-	log.Println("Dispatcher initialized")
+	fmt.Println("Dispatcher initialized")
 	return d
 }
 
 func (d *Dispatcher) Register(listener Listener, names ...Name) error {
 	for _, name := range names {
 		if _, ok := d.events[name]; ok {
-			log.Printf("Event '%s' already registered", name)
+			fmt.Printf("Event '%s' already registered", name)
 			return fmt.Errorf("the '%s' event is already registered", name)
 		}
 		d.events[name] = listener
-		log.Printf("Registered event: %s", name)
+		fmt.Printf("Registered event: %s", name)
 	}
 	return nil
 }
@@ -39,14 +38,15 @@ func (d *Dispatcher) Dispatch(name Name, event interface{}) error {
 	}
 
 	d.jobs <- job{eventName: name, eventType: event}
-	log.Printf("Dispatched event: %s", name)
+	fmt.Printf("Dispatched event: %s", name)
 
 	return nil
 }
 
 func (d *Dispatcher) consume() {
+	fmt.Println("[DISPATCHER] consume loop started")
 	for job := range d.jobs {
-		log.Printf("Consuming event: %s", job.eventName)
+		fmt.Printf("Consuming event: %s", job.eventName)
 		d.events[job.eventName].Listen(job.eventType)
 	}
 }
