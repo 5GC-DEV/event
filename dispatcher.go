@@ -33,11 +33,11 @@ func (d *Dispatcher) Register(listener Listener, names ...Name) error {
 }
 
 func (d *Dispatcher) Dispatch(name Name, event interface{}) error {
-	fmt.Printf("Dispatching Event Name: %s, Event Value: %#v\n", name, event)
+	fmt.Printf("*********** Dispatching Event Name: %s, Event Value: %#v\n", name, event)
 	if _, ok := d.events[name]; !ok {
 		return fmt.Errorf("the '%s' event is not registered", name)
 	}
-
+	fmt.Printf("*************** Before Job assign Event Name: %s", name)
 	d.jobs <- job{eventName: name, eventType: event}
 	fmt.Printf("Dispatched event: %s", name)
 
