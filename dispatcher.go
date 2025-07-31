@@ -4,12 +4,12 @@ import (
 	"fmt"
 )
 
-type Dispatcher struct {
+/*type Dispatcher struct {
 	jobs   chan job
 	events map[Name]Listener
-}
+}*/
 
-func NewDispatcher() *Dispatcher {
+/*func NewDispatcher() *Dispatcher {
 	d := &Dispatcher{
 		jobs:   make(chan job, 1),
 		events: make(map[Name]Listener),
@@ -17,6 +17,27 @@ func NewDispatcher() *Dispatcher {
 
 	go d.consume()
 	fmt.Println("Dispatcher initialized")
+	return d
+}*/
+
+type Dispatcher struct {
+	jobs        chan job
+	events      map[Name]Listener
+	workerCount int
+}
+
+func NewDispatcher(workerCount int, jobQueueSize int) *Dispatcher {
+	d := &Dispatcher{
+		jobs:        make(chan job, jobQueueSize),
+		events:      make(map[Name]Listener),
+		workerCount: workerCount,
+	}
+
+	for i := 0; i < d.workerCount; i++ {
+		go d.worker(i)
+	}
+
+	fmt.Println("Dispatcher initialized with", workerCount, "workers")
 	return d
 }
 
@@ -51,14 +72,22 @@ func (d *Dispatcher) Dispatch(name Name, event interface{}) error {
 	return nil
 }
 
-func (d *Dispatcher) consume() {
+func (d *Dispatcher) worker(id int) {
+	fmt.Printf("[WORKER %d] started\n", id)
+	for job := range d.jobs {
+		fmt.Printf("[WORKER %d] Processing event: %s\n", id, job.eventName)
+		d.events[job.eventName].Listen(job.eventType)
+	}
+}
+
+/*func (d *Dispatcher) consume() {
 	fmt.Println("[DISPATCHER] consume loop started")
 	for job := range d.jobs {
 		fmt.Printf("Consuming event: %s", job.eventName)
 		d.events[job.eventName].Listen(job.eventType)
 	}
 	fmt.Println("consume End")
-}
+}*/
 
 /*func (d *Dispatcher) consume() {
 	fmt.Println("[DISPATCHER] consume loop started")
