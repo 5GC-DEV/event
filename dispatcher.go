@@ -11,7 +11,7 @@ type Dispatcher struct {
 
 func NewDispatcher() *Dispatcher {
 	d := &Dispatcher{
-		jobs:   make(chan job),
+		jobs:   make(chan job, 100),
 		events: make(map[Name]Listener),
 	}
 
@@ -44,10 +44,30 @@ func (d *Dispatcher) Dispatch(name Name, event interface{}) error {
 	return nil
 }
 
-func (d *Dispatcher) consume() {
+/*func (d *Dispatcher) consume() {
 	fmt.Println("[DISPATCHER] consume loop started")
 	for job := range d.jobs {
 		fmt.Printf("Consuming event: %s", job.eventName)
 		d.events[job.eventName].Listen(job.eventType)
+	}
+}*/
+
+func (d *Dispatcher) consume() {
+	fmt.Println("[DISPATCHER] consume loop started")
+	for job := range d.jobs {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Printf("[PANIC] while consuming event %s: %v\n", job.eventName, r)
+				}
+			}()
+			fmt.Printf("Consuming event: %s, Value: %#v\n", job.eventName, job.eventType)
+			listener, ok := d.events[job.eventName]
+			if !ok {
+				fmt.Printf("[ERROR] No listener for event: %s\n", job.eventName)
+				return
+			}
+			listener.Listen(job.eventType)
+		}()
 	}
 }
