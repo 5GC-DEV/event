@@ -57,6 +57,7 @@ func (d *Dispatcher) consume() {
 		fmt.Printf("Consuming event: %s", job.eventName)
 		d.events[job.eventName].Listen(job.eventType)
 	}
+	fmt.Println("consume End")
 }
 
 /*func (d *Dispatcher) consume() {
