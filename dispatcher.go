@@ -11,7 +11,7 @@ type Dispatcher struct {
 
 func NewDispatcher() *Dispatcher {
 	d := &Dispatcher{
-		jobs:   make(chan job, 1),
+		jobs:   make(chan job),
 		events: make(map[Name]Listener),
 	}
 	go func() {
